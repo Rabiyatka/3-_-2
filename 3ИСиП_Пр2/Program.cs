@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ShopInventory
+namespace Shop
 {
-    // 1. Категории товаров (Перечисление)
     enum Category { Продукты, Электроника, Одежда }
 
-    // Структура для хранения истории продаж (для Stack)
+    // Структура для хранения истории продаж
     struct SaleRecord
     {
         public int ProductId;
@@ -15,10 +14,10 @@ namespace ShopInventory
         public decimal PriceAtSale;
     }
 
-    // 2. Класс Товара
+    //Класс Товара
     class Product
     {
-        private static int _nextId = 1000; // Генератор уникального кода (начинается с 1)
+        private static int _nextId = 1000; //Генератор уникального кода
 
         public int Id { get; private set; }
         public string Name { get; set; }
@@ -26,8 +25,8 @@ namespace ShopInventory
         public int Quantity { get; set; }
         public Category ProdCategory { get; set; }
 
-        // Автоматическое свойство: товар есть, если его количество больше 0
-        public bool IsInStock => Quantity > 0;
+        //Ищет товар в наличии или нет
+        public bool IsInStock => Quantity > 0; //сокращение 
 
         public Product(string name, decimal price, int quantity, Category category)
         {
@@ -40,7 +39,7 @@ namespace ShopInventory
 
         public void DisplayInfo()
         {
-            string stockStatus = IsInStock ? "В наличии" : "Нет на складе";
+            string stockStatus = IsInStock ? "В наличии" : "Нет на складе"; // Это крутое сокращение if else, мне понравилось выглядит так будто я круто шарю
             Console.WriteLine($"[{Id}] {Name} | Кат: {ProdCategory} | Цена: {Price:C} | Кол-во: {Quantity} шт. ({stockStatus})");
         }
     }
@@ -75,18 +74,18 @@ namespace ShopInventory
                     case "1": ShowAllProducts(); break;
                     case "2": AddNewProduct(); break;
                     case "3": DeleteProduct(); break;
-                    case "4": RestockProduct(); break;
+                    case "4": ZakazProduct(); break;
                     case "5": SearchProducts(); break;
                     case "6": SellProduct(); break;
                     case "7": UndoLastSale(); break;
-                    case "8": ShowSalesReport(); break;
+                    case "8": ShowAllSales(); break;
                     case "0": return;
                     default: Console.WriteLine("Ошибка: Неверная команда. Попробуйте снова."); break;
                 }
             }
         }
 
-        // Заполнение 5 тестовыми товарами
+        //ЖесткоеЗаполнениетоварами
         static void SeedData()
         {
             products.Add(new Product("Молоко", 85.50m, 20, Category.Продукты));
@@ -105,26 +104,26 @@ namespace ShopInventory
         static void AddNewProduct()
         {
             string name = ReadString("Введите название товара: ");
-            decimal price = ReadDecimal("Введите цену товара (положительную): ", 0.01m);
-            int quantity = ReadInt("Введите начальное количество (>= 0): ", 0);
+            decimal price = ReadDecimal("Введите цену товара: ", 0.01m);
+            int quantity = ReadInt("Введите начальное количество: ", 0);
 
             Console.WriteLine("Выберите категорию: 0 - Продукты, 1 - Электроника, 2 - Одежда");
-            int catIndex = ReadInt("Номер категории: ", 0, 2);
-            Category category = (Category)catIndex;
+            int categoryID = ReadInt("Номер категории: ", 0, 2);
+            Category category = (Category)categoryID;
 
             products.Add(new Product(name, price, quantity, category));
-            Console.WriteLine("Товар успешно добавлен!");
+            Console.WriteLine("Товар добавлен");
         }
 
         static void DeleteProduct()
         {
             int id = ReadInt("Введите код товара для удаления: ");
             Product p = products.Find(x => x.Id == id);
-            if (p != null) { products.Remove(p); Console.WriteLine("Товар удален."); }
-            else Console.WriteLine("Товар с таким кодом не найден.");
+            if (p != null) { products.Remove(p); Console.WriteLine("Товара нет. товара здесь больше нет."); }
+            else Console.WriteLine("Нет товара с таким кодом.");
         }
 
-        static void RestockProduct()
+        static void ZakazProduct()
         {
             int id = ReadInt("Введите код товара для поставки: ");
             Product p = products.Find(x => x.Id == id);
@@ -132,7 +131,7 @@ namespace ShopInventory
 
             int amount = ReadInt("Какое количество заказать? ", 1);
             p.Quantity += amount;
-            Console.WriteLine($"Поставка выполнена! Новое количество: {p.Quantity} шт.");
+            Console.WriteLine($"Ну все добавили. Новое количество: {p.Quantity} шт.");
         }
 
         static void SellProduct()
@@ -143,21 +142,21 @@ namespace ShopInventory
             if (!p.IsInStock) { Console.WriteLine("Товара нет на складе!"); return; }
 
             int qty = ReadInt($"Введите количество для продажи (доступно {p.Quantity} шт.): ", 1);
-            if (qty > p.Quantity) { Console.WriteLine("Ошибка: На складе нет столько товара!"); return; }
+            if (qty > p.Quantity) { Console.WriteLine("Ошибка. Нет столько добра. "); return; }
 
             p.Quantity -= qty;
 
-            // Фиксируем продажу для истории и отчетов
+            //Я Фиксирую я фиксирую , я тоже фиксирую, фиксирую продажу для истории и отчетов
             SaleRecord sale = new SaleRecord { ProductId = p.Id, Quantity = qty, PriceAtSale = p.Price };
             saleHistory.Push(sale);
             allSalesLog.Add(sale);
 
-            Console.WriteLine($"Продано! Общая стоимость: {qty * p.Price:C}");
+            Console.WriteLine($"Продано. Общая стоимость: {qty * p.Price:C}");
         }
 
         static void UndoLastSale()
         {
-            if (saleHistory.Count == 0) { Console.WriteLine("История продаж пуста. Нечего отменять."); return; }
+            if (saleHistory.Count == 0) { Console.WriteLine("История продаж пуста. Нечего отменять."); return; } 
 
             SaleRecord lastSale = saleHistory.Pop();
             allSalesLog.Remove(lastSale); // Удаляем из общего отчета
@@ -165,10 +164,10 @@ namespace ShopInventory
             Product p = products.Find(x => x.Id == lastSale.ProductId);
             if (p != null) p.Quantity += lastSale.Quantity; // Возвращаем товар на склад
 
-            Console.WriteLine("Последняя продажа успешно отменена! Товар возвращен на склад.");
+            Console.WriteLine("Галя, отмена. Товар возвращен на склад.");
         }
 
-        static void ShowSalesReport()
+        static void ShowAllSales()
         {
             Console.WriteLine("--- ОТЧЁТ О ПРОДАЖАХ ---");
             if (allSalesLog.Count == 0) { Console.WriteLine("Продаж еще не было."); return; }
@@ -182,28 +181,28 @@ namespace ShopInventory
                 totalRevenue += sum;
                 Console.WriteLine($"- {prodName} (Код: {sale.ProductId}) | {sale.Quantity} шт. x {sale.PriceAtSale:C} = {sum:C}");
             }
-            Console.WriteLine($"-----------------------\nИТОГО ВЫРУЧКА: {totalRevenue:C}");
+            Console.WriteLine($" Выручка получается: {totalRevenue:C}");
         }
 
         static void SearchProducts()
         {
             Console.WriteLine("Как искать? 1 - По коду, 2 - По названию, 3 - По категории");
-            string mode = Console.ReadLine();
+            string knopka = Console.ReadLine();
 
-            if (mode == "1")
+            if (knopka == "1")
             {
                 int id = ReadInt("Введите код: ");
                 var res = products.Where(x => x.Id == id);
                 PrintResults(res);
             }
-            else if (mode == "2")
+            else if (knopka == "2")
             {
                 Console.Write("Введите часть названия: ");
                 string name = Console.ReadLine().ToLower();
                 var res = products.Where(x => x.Name.ToLower().Contains(name));
                 PrintResults(res);
             }
-            else if (mode == "3")
+            else if (knopka == "3")
             {
                 Console.WriteLine("0 - Продукты, 1 - Электроника, 2 - Одежда");
                 int cat = ReadInt("Выберите категорию: ", 0, 2);
@@ -219,7 +218,7 @@ namespace ShopInventory
             foreach (var p in results) p.DisplayInfo();
         }
 
-        // --- ВАЛИДАЦИЯ ВВОДА (Защита от «вылетов») ---
+        //Чтоб не вылетала птичка
         static string ReadString(string message)
         {
             while (true)
@@ -227,7 +226,7 @@ namespace ShopInventory
                 Console.Write(message);
                 string input = Console.ReadLine()?.Trim();
                 if (!string.IsNullOrEmpty(input)) return input;
-                Console.WriteLine("Ошибка: Строка не может быть пустой.");
+                Console.WriteLine("Одна ошибка и вы ошиблись. Строка не может быть пустой.");
             }
         }
 
@@ -237,7 +236,7 @@ namespace ShopInventory
             {
                 Console.Write(message);
                 if (int.TryParse(Console.ReadLine(), out int result) && result >= min && result <= max) return result;
-                Console.WriteLine($"Ошибка: Введите целое число в диапазоне от {min} до {max}.");
+                Console.WriteLine($"Ошибка. Введите целое число в диапазоне от {min} до {max}.");
             }
         }
 
