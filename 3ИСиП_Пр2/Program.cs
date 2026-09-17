@@ -17,7 +17,7 @@ namespace Shop
     //Класс Товара
     class Product
     {
-        private static int _nextId = 1000; //Генератор уникального кода
+        private static int _nextId = 1000; 
 
         public int Id { get; private set; }
         public string Name { get; set; }
